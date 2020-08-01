@@ -1,0 +1,121 @@
+openapi: 3.0.1
+info:
+  title: Rails 6 API Bootstrap
+  description: 'API on Rails 6 Base Project'
+  contact:
+    name: CrazyOptimist
+    url: https://www.crazyoptimist.net
+    email: hey@crazyoptimist.net
+  version: 1.0.0
+
+servers:
+  - url: http://192.168.1.9:3000/api/v1
+    description: Development Machine
+
+tags:
+  - name: Users
+    description: Everything about users
+  - name: Tokens
+    description: Creation of JWT Token for user authentication
+    externalDocs:
+        url: https://jwt.io/introduction/
+
+paths:
+  /users/{id}:
+    summary: Represents a user
+    description: >
+      This resource represents an individual user in the system
+      Every user is identified by a numeric `id`
+    get:
+      summary: Returns a user selected by user_id.
+      tags:
+        - Users
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: 
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: A JSON user object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /tokens:
+    summary: Handles JWT auth token management
+    description: >
+      This should create a new token given a proper pair of user email and password
+    post:
+      summary: Creates a new JWT token
+      tags: 
+        - Tokens
+      requestBody:
+        description: JSON object contains user's email and password
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+      responses:
+        '201': 
+          description: A new JWT token has been created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+
+components:
+  schemas: # Data schemas
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        password_digest:
+          type: string
+          description: Hashed password string of the user
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    TokenRequest: # Request schema for token request
+      type: object
+      description: Email and password pair for retrieving a new JWT token
+      properties:
+        user:
+          type: object
+          properties:
+            email:
+              type: string
+            password:
+              type: string
+              format: password
+              writeOnly: true
+    TokenResponse: # Token response
+      type: object
+      description: Got a new JWT token
+      properties:
+        token:
+          type: string
+        email:
+          type: string
+  securitySchemes: # Security schemes
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses: # Reusable response bodies
+    UnauthorizedError:
+      description: Access token is missing or invalid
+
+
+security:
+  - BearerAuth: []
